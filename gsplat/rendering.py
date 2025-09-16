@@ -2256,22 +2256,14 @@ def rasterization_2dgs(
         distloss=distloss,
     )
     render_normals_from_depth = None
-    if render_mode_has_expected_depth(render_mode):
-        # normalize the accumulated depth to get the expected depth
-        render_colors = torch.cat(
-            [
-                render_colors[..., :-1],
-                render_colors[..., -1:] / render_alphas.clamp(min=1e-10),
-            ],
-            dim=-1,
-        )
     if render_mode_has_depth(render_mode) and render_mode_has_color(render_mode):
         # render_depths = render_colors[..., -1:]
         if depth_mode == "expected":
-            depth_for_normal = render_colors[..., -1:]
+            depth_for_normal = render_colors[..., -1:] / render_alphas.clamp(min=1e-10)
         elif depth_mode == "median":
             depth_for_normal = render_median
 
+    
         render_normals_from_depth = depth_to_normal(
             depth_for_normal, torch.linalg.inv(viewmats), Ks
         ).squeeze(0)
